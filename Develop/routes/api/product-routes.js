@@ -4,19 +4,48 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   // find all products
   // be sure to include its associated Category and Tag data
+  try {
+    const productData = await Product.findAll(req.params.id, {
+      include: [{ model:Category}, {model: Tag}, {model: ProductTag}]
+    });
+
+    if (!productData) {
+      res.status(404).json({ message: 'Product not found with this id!' });
+      return;
+    }
+
+    res.status(200).json(productData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 // get one product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
+  try {
+    const productData = await Product.findByPk(req.params.id, {
+      // Add Book as a second model to JOIN with
+      include: [{ model: Category }, { model: Tag },{model: ProductTag}],
+    });
+
+    if (!productData) {
+      res.status(404).json({ message: 'Product not found with that id!' });
+      return;
+    }
+
+    res.status(200).json(productData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 // create new product
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   /* req.body should look like this...
     {
       product_name: "Basketball",
@@ -25,6 +54,18 @@ router.post('/', (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
+ //Am I adding code here?
+    try {
+      const productData = await Product.create({
+        product_name: req.body.product_id,
+        price: req.body.price,
+        stock: req.body.stock,
+        tagIds: req.body.tagIds,
+      });
+      res.status(200).json(productData);
+    } catch (err) {
+      res.status(400).json(err);
+    }
   Product.create(req.body)
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
